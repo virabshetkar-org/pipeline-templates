@@ -51,5 +51,5 @@ jobs:
         with:
           name: ${{ inputs.artifact_name }}
           path: |
-            client/{{ inputs.artifact_name }}-client/dist/${{ inputs.artifact_name }}/browser/
+            client/${{ inputs.artifact_name }}-client/dist/${{ inputs.artifact_name }}/browser/
           if-no-files-found: error
