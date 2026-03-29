@@ -34,16 +34,16 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        working-directory: client
+        working-directory: client/${{ inputs.artifact_name }}-client/
 
       - name: Build app
         run: npm run build -- --base-href "${{ inputs.base_href }}"
-        working-directory: client
+        working-directory: client/${{ inputs.artifact_name }}-client/
 
       - name: Set artifact name output
         id: set-output
         run: echo "artifact_name=${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
-        working-directory: client
+        working-directory: client/${{ inputs.artifact_name }}-client/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
