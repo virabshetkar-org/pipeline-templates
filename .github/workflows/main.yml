@@ -1,0 +1,11 @@
+name: test
+
+on: workflow_dispatch
+
+jobs:
+  test-job:
+    runs-on:
+      - self-hosted
+      - deploy
+    steps:
+      - run: echo Hello World!
