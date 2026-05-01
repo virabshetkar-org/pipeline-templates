@@ -15,9 +15,6 @@ inputs:
 
 runs:
   using: "composite"
-  defaults:
-    run:
-      working-directory: application/client
   steps:
     - name: Checkout Branch
       uses: actions/checkout@v6
@@ -25,11 +22,12 @@ runs:
         repository: ${{ inputs.repository }}
         ref: ${{ inputs.commitId }}
         path: application
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: $GITHUB_TOKEN
     - name: Get project name
+      shell: bash
       id: ngproj
-      run: echo "name=$(jq -r '.defaultProject // (.projects | keys[0])'
-        angular.json)" >> $GITHUB_OUTPUT
+      run: echo "name=$(jq -r '.defaultProject // (.projects | keys[0])' angular.json)" >> $GITHUB_OUTPUT
+      working-directory: application/client
     - name: Install Node v24
       uses: actions/setup-node@v6
       with:
@@ -37,11 +35,15 @@ runs:
         cache: npm
         cache-dependency-path: application/client/package-lock.json
     - name: Install Node Dependencies
+      shell: bash
       run: npm ci
+      working-directory: application/client
     - name: Build Application
-      run: npm run build -- --base-href /${{steps.ngproj.outputs.name}}/
+      shell: bash
+      run: npm run build -- --base-href /${{ steps.ngproj.outputs.name }}/
+      working-directory: application/client
     - name: Create Artifact
       uses: actions/upload-artifact@v7
       with:
-        path: application/client/dist/${{step.ngproj.outputs.name}}/browser/*
+        path: application/client/dist/${{ steps.ngproj.outputs.name }}/browser/*
         name: client-artifact
