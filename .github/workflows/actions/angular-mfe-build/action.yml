@@ -1,0 +1,47 @@
+name: Angular MFE Build
+description: "Build and artifact"
+
+inputs:
+  repository:
+    type: string
+    description: Repository containing client folder with an Angular MFE or Shell
+      Application
+    required: true
+  commitId:
+    type: string
+    description: Commit Id to build
+    required: false
+    default: latest
+
+runs:
+  using: "composite"
+  defaults:
+    run:
+      working-directory: application/client
+  steps:
+    - name: Checkout Branch
+      uses: actions/checkout@v6
+      with:
+        repository: ${{ inputs.repository }}
+        ref: ${{ inputs.commitId }}
+        path: application
+        token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Get project name
+      id: ngproj
+      run: echo "name=$(jq -r '.defaultProject // (.projects | keys[0])'
+        angular.json)" >> $GITHUB_OUTPUT
+    - name: Install Node v24
+      uses: actions/setup-node@v6
+      with:
+        node-version: 24
+        cache: npm
+        cache-dependency-path: application/client/package-lock.json
+    - name: Install Node Dependencies
+      run: npm ci
+    - name: Build Application
+      run: npm run build -- --base-href /${{steps.ngproj.outputs.name}}/
+    - name: Create Artifact
+      uses: actions/upload-artifact@v7
+      with:
+        path: application/client/dist/${{step.ngproj.outputs.name}}/browser/*
+        name: client-artifact
