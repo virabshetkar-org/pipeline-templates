@@ -2,11 +2,6 @@ name: Angular MFE Build
 description: "Build and artifact"
 
 inputs:
-  repository:
-    type: string
-    description: Repository containing client folder with an Angular MFE or Shell
-      Application
-    required: true
   commitId:
     type: string
     description: Commit Id to build
