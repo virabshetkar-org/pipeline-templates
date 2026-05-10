@@ -1,0 +1,55 @@
+name: Angular Build Template
+
+on:
+  workflow_call:
+    inputs:
+      base_href:
+        required: true
+        type: string
+      artifact_name:
+        required: true
+        type: string
+    outputs:
+      artifact_name:
+        value: ${{ jobs.build.outputs.artifact_name }}
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    outputs:
+      artifact_name: ${{ steps.set-output.outputs.artifact_name }}
+
+    steps:
+      - name: Checkout caller repo
+        uses: actions/checkout@v4
+        with:
+          path: client
+
+      - name: Use Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: client/${{ inputs.artifact_name }}-client/
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: client/${{ inputs.artifact_name }}-client/
+
+      - name: Build app
+        run: npm run build -- --base-href "${{ inputs.base_href }}"
+        working-directory: client/${{ inputs.artifact_name }}-client/
+
+      - name: Set artifact name output
+        id: set-output
+        run: echo "artifact_name=${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
+        working-directory: client/${{ inputs.artifact_name }}-client/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: |
+            client/${{ inputs.artifact_name }}-client/dist/${{ inputs.artifact_name }}-client/browser/
+          if-no-files-found: error
