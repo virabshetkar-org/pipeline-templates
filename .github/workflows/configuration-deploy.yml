@@ -1,1 +1,33 @@
+name: CICD (Configuration)
 
+run-name: ${{github.sha}} -- Configuration
+
+on:
+  workflow_call:
+    inputs:
+      commitId:
+        type: string 
+        description: Current repo commitId to deploy
+        required: false
+      region-name:
+        type: string
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, deploy]
+    steps:
+      - name: Get commit hash
+        id: commitHash
+        run: echo "commitHash=${{inputs.commitId || github.sha}}" >> $GITHUB_OUTPUT
+      - name: Checkout branch
+        uses: actions/checkout@v6
+        with:
+          path: configuration
+          ref: ${{steps.commitHash.outputs.commitHash}}
+      - name: Copy configs
+        working-directory: configuration
+        run: | 
+          mkdir -p /var/www/${{ inputs.region-name }}-config/${{steps.commitHash.outputs.commitHash}}
+          rm -rf /var/www/${{ inputs.region-name }}-config/${{steps.commitHash.outputs.commitHash}}/*
+          cp -r ./appconfig/* /var/www/${{ inputs.region-name }}-config/${{steps.commitHash.outputs.commitHash}}
+          ln -sfn ./${{steps.commitHash.outputs.commitHash}} /var/www/${{ inputs.region-name }}-config/current
